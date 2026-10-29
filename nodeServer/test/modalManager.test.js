@@ -50,6 +50,35 @@ describe('ModalRenderer', () => {
     expect(resultsDiv.classList.contains('typeahead-results')).toBe(true)
   })
 
+  it('keeps a cross-reference field when its lookup column is editable', () => {
+    const renderer = new ModalRenderer()
+    const manager = {
+      tables: {
+        documents: {
+          displayName: 'Documents',
+          columns: [
+            { name: 'id' },
+            { name: 'inst_id' },
+            { name: 'inst_title', crossReferenceTable: 'locations', lookupColumn: 'inst_id', joinedColumn: 'inst_title', label: 'Institution Title' },
+            { name: 'doc_title', label: 'Title' }
+          ]
+        }
+      },
+      editableColumns: {
+        documents: ['id', 'inst_id', 'doc_title']
+      }
+    }
+    const titleEl = document.createElement('div')
+    const fieldsContainer = document.createElement('div')
+
+    renderer.buildModalForTable(manager, 'documents', fieldsContainer, titleEl)
+
+    expect(fieldsContainer.querySelector('#search_inst_id')).toBeTruthy()
+    const hiddenInput = fieldsContainer.querySelector('input[type="hidden"][data-col-name="inst_id"]')
+    expect(hiddenInput).toBeTruthy()
+    expect(fieldsContainer.querySelectorAll('.form-row').length).toBe(2)
+  })
+
   it('shows message when no editable fields', () => {
     const renderer = new ModalRenderer()
     const manager = {

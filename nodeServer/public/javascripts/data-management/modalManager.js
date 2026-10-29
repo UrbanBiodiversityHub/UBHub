@@ -116,8 +116,11 @@ export class ModalRenderer {
     const formColumns = columns.filter(column => {
       if (!column || column.name === undefined) return false;
       if (column.name === 'id') return false;
-      // Filter to editable set when one is defined
-      if (editableColumnSet && !editableColumnSet.has(column.name)) return false;
+      // Filter to editable set when one is defined. A cross-reference column is
+      // named after its display-only joined column (e.g. inst_title), so check
+      // the lookup column it actually writes (e.g. inst_id) instead.
+      const writtenColumnName = column.crossReferenceTable ? column.lookupColumn : column.name;
+      if (editableColumnSet && !editableColumnSet.has(writtenColumnName)) return false;
       const isLookupForCrossRef = columns.some(c => c && c.crossReferenceTable && c.lookupColumn === column.name);
       if (isLookupForCrossRef) return false;
       return true;
