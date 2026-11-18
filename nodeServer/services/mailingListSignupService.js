@@ -71,7 +71,7 @@ export function normalizeSignupInterests(rawInterests) {
  * Validate and normalize the raw signup form fields.
  *
  * @param {object} formFields - Raw request body.
- * @returns {{email: string, alias: string, title: string, institution: string, region: string, interests: object}}
+ * @returns {{email: string, alias: string, title: string, institution: string, city: string, country: string, region: string, interests: object}}
  * @throws {Error} with code 'INVALID_SIGNUP' when a field is missing or invalid,
  *   including when privacyConsent is not 'yes'.
  */
@@ -106,6 +106,8 @@ export function normalizeSignupFormFields(formFields) {
     alias,
     title: normalizeOptionalText(fields.title, 'Title'),
     institution: normalizeOptionalText(fields.institution, 'Institution'),
+    city: normalizeOptionalText(fields.city, 'City'),
+    country: normalizeOptionalText(fields.country, 'Country'),
     region: regionValidation.value,
     interests: normalizeSignupInterests(fields.interests),
   };
@@ -123,12 +125,14 @@ export function normalizeSignupFormFields(formFields) {
 export async function createMailingListSignup(executeQuery, formFields) {
   const signup = normalizeSignupFormFields(formFields);
 
-  const insertSql = 'INSERT IGNORE INTO users (email, alias, title, institution, region, signupInterests, createdBy, privileges, consentGivenAt) VALUES (?, ?, ?, ?, ?, ?, ?, 0, NOW())';
+  const insertSql = 'INSERT IGNORE INTO users (email, alias, title, institution, city, country, region, signupInterests, createdBy, privileges, consentGivenAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())';
   const insertResult = await executeQuery(insertSql, [
     signup.email,
     signup.alias,
     signup.title,
     signup.institution,
+    signup.city,
+    signup.country,
     signup.region,
     JSON.stringify(signup.interests),
     MAILING_LIST_SIGNUP_CREATED_BY,

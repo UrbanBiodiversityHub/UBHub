@@ -159,6 +159,8 @@ const tableDisplayMetadata = {
       { name: 'region', label: 'Region', visible: true, placeholder: 'e.g. EU,NA  (codes: NA, LA, CAR, MECNA, AF, ESA, SA, EU, OC)' },
       { name: 'phone', label: 'Phone', visible: false },
       { name: 'institution', label: 'Institution', visible: true },
+      { name: 'city', label: 'City', visible: true },
+      { name: 'country', label: 'Country', visible: true },
       { name: 'title', label: 'Title', visible: false },
       { name: 'level', label: 'Level', visible: false },
       { name: 'workingGroup', label: 'Working Group', visible: false },
@@ -241,7 +243,7 @@ const editableTableMetadata = {
   // so that pending-change submissions for users are always rejected.
   users: {
     primaryKey: ['email'],
-    columns: ['email', 'alias', 'phone', 'title', 'institution', 'region', 'level', 'workingGroup'],
+    columns: ['email', 'alias', 'phone', 'title', 'institution', 'city', 'country', 'region', 'level', 'workingGroup'],
   },
 };
 

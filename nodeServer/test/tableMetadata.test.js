@@ -66,6 +66,14 @@ describe('tableMetadata', () => {
       expect(Array.isArray(metadata.columns)).toBe(true);
       expect(metadata.columns).toContain('email');
       expect(metadata.columns).toContain('alias');
+      expect(metadata.columns).toContain('city');
+      expect(metadata.columns).toContain('country');
+    });
+
+    it('shows city and country in the users display table', () => {
+      const columnNames = getTableDisplayMetadata('users').columns.map(column => column.name);
+      expect(columnNames).toContain('city');
+      expect(columnNames).toContain('country');
     });
 
     it('returns undefined for a non-editable table', () => {

@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS users(
     region VARCHAR(255),
     title VARCHAR(255),
     institution VARCHAR(255),
+    city VARCHAR(255),
+    country VARCHAR(255),
     status VARCHAR(255),
     assignedSite VARCHAR(255), -- assignedSites
     whatsAppNumber VARCHAR(20),

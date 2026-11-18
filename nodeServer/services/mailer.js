@@ -33,20 +33,20 @@ export async function sendAdminNotification({ newUserEmail, alias, institution, 
   }
 }
 
-export function buildMailingListSignupPlainText({ email, alias, institution, title, region, selectedInterestLabels, createdAt }) {
+export function buildMailingListSignupPlainText({ email, alias, institution, title, city, country, region, selectedInterestLabels, createdAt }) {
   const interestLines = (selectedInterestLabels && selectedInterestLabels.length > 0)
     ? selectedInterestLabels.map(interestLabel => `  - ${interestLabel}`).join('\n')
     : '  (none)';
-  return `Someone has signed up for the UBHub mailing list.\n\nEmail: ${email}\nName: ${alias || ''}\nInstitution: ${institution || ''}\nTitle: ${title || ''}\nRegion: ${region || ''}\nSigned Up At: ${createdAt || new Date().toISOString()}\n\nIn addition to the mailing list:\n${interestLines}\n`;
+  return `Someone has signed up for the UBHub mailing list.\n\nEmail: ${email}\nName: ${alias || ''}\nInstitution: ${institution || ''}\nTitle: ${title || ''}\nCity: ${city || ''}\nCountry: ${country || ''}\nRegion: ${region || ''}\nSigned Up At: ${createdAt || new Date().toISOString()}\n\nIn addition to the mailing list:\n${interestLines}\n`;
 }
 
-export async function sendMailingListSignupNotification({ email, alias, institution, title, region, selectedInterestLabels, contactRequested, createdAt }) {
+export async function sendMailingListSignupNotification({ email, alias, institution, title, city, country, region, selectedInterestLabels, contactRequested, createdAt }) {
   try {
     const mail = {
       from: config.EMAIL_FROM,
       to: config.ADMIN_EMAIL,
       subject: `${contactRequested ? '[Contact requested] ' : ''}New UBHub mailing list signup: ${email}`,
-      text: buildMailingListSignupPlainText({ email, alias, institution, title, region, selectedInterestLabels, createdAt }),
+      text: buildMailingListSignupPlainText({ email, alias, institution, title, city, country, region, selectedInterestLabels, createdAt }),
     };
 
     return await transporter.sendMail(mail);

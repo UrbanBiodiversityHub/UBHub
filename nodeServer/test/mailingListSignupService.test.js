@@ -11,6 +11,8 @@ const validFormFields = {
   alias: ' Pat Person ',
   title: 'Director',
   institution: 'City Zoo',
+  city: ' Ljubljana ',
+  country: ' Slovenia ',
   region: ['EU', 'NA'],
   privacyConsent: 'yes',
   interests: ['partnershipCollaboration', 'contactRequest'],
@@ -25,6 +27,8 @@ describe('normalizeSignupFormFields', () => {
       alias: 'Pat Person',
       title: 'Director',
       institution: 'City Zoo',
+      city: 'Ljubljana',
+      country: 'Slovenia',
       region: 'EU,NA',
       interests: { partnershipCollaboration: true, individualNetworkMember: false, contactRequest: true },
     });
@@ -40,6 +44,8 @@ describe('normalizeSignupFormFields', () => {
       alias: 'Pat',
       title: '',
       institution: '',
+      city: '',
+      country: '',
       region: '',
       interests: noInterests,
     });
@@ -51,6 +57,8 @@ describe('normalizeSignupFormFields', () => {
     [{ ...validFormFields, alias: '   ' }, 'Name is required'],
     [{ ...validFormFields, region: ['EU', 'MARS'] }, 'Invalid region: MARS'],
     [{ ...validFormFields, title: 'x'.repeat(256) }, 'Title must be 255 characters or fewer'],
+    [{ ...validFormFields, city: 'x'.repeat(256) }, 'City must be 255 characters or fewer'],
+    [{ ...validFormFields, country: 'x'.repeat(256) }, 'Country must be 255 characters or fewer'],
     [{ ...validFormFields, privacyConsent: undefined }, 'Please confirm that you agree to the privacy notice'],
     [{ ...validFormFields, privacyConsent: 'on' }, 'Please confirm that you agree to the privacy notice'],
     [{ ...validFormFields, interests: ['contactRequest', 'freeIceCream'] }, 'Invalid interest: freeIceCream'],
@@ -95,10 +103,10 @@ describe('createMailingListSignup', () => {
     expect(executeQuery).toHaveBeenCalledTimes(1);
     const [sql, parameters] = executeQuery.mock.calls[0];
     expect(sql).toMatch(/^INSERT IGNORE INTO users/);
-    expect(sql).toMatch(/region, signupInterests, createdBy, privileges, consentGivenAt\) VALUES \(\?, \?, \?, \?, \?, \?, \?, 0, NOW\(\)\)/);
+    expect(sql).toMatch(/city, country, region, signupInterests, createdBy, privileges, consentGivenAt\) VALUES \(\?, \?, \?, \?, \?, \?, \?, \?, \?, 0, NOW\(\)\)/);
     expect(sql).not.toMatch(/hashedPassword/);
     expect(parameters).toEqual([
-      'person@example.org', 'Pat Person', 'Director', 'City Zoo', 'EU,NA',
+      'person@example.org', 'Pat Person', 'Director', 'City Zoo', 'Ljubljana', 'Slovenia', 'EU,NA',
       '{"partnershipCollaboration":true,"individualNetworkMember":false,"contactRequest":true}',
       MAILING_LIST_SIGNUP_CREATED_BY,
     ]);

@@ -24,3 +24,7 @@ ALTER TABLE users ADD COLUMN removalRequestedAt DATETIME DEFAULT NULL;
 
 # 3. Mailing-list signup interest checkboxes (JSON of true/false per interest).
 ALTER TABLE users ADD COLUMN signupInterests JSON DEFAULT NULL;
+
+# 4. City and country on users (mailing-list signup, contacts). Run BEFORE deploying the code that writes these columns.
+ALTER TABLE users ADD COLUMN city VARCHAR(255);
+ALTER TABLE users ADD COLUMN country VARCHAR(255);

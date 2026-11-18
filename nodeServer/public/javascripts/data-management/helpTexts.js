@@ -76,6 +76,8 @@ export const dataManagementHelpTexts = {
     userAddress: 'Postal or mailing address for the user (optional).',
     title: 'Job title or role of the user (e.g. "Field Coordinator").',
     institution: 'Institutional affiliation of the user (optional).',
+    city: 'City where the person is based (optional).',
+    country: 'Country where the person is based (optional).',
     whatsAppNumber: 'WhatsApp contact number for the user (include country code). Optional and used for outreach.',
     primaryContact: 'Primary contact name for the user\'s institution or team, if different from the account holder.',
     notes: 'Free-text notes about the user. Avoid storing sensitive personal data in this field.',

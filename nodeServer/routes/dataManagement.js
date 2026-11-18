@@ -256,13 +256,15 @@ router.post('/contact', isAuthenticated, isContributor, async (request, response
       return response.status(400).json({error: `Invalid region code: ${regionValidation.invalid}`});
     }
 
-    const insertSql = 'INSERT INTO `users` (email, alias, phone, title, institution, region, level, workingGroup, createdBy, privileges) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)';
+    const insertSql = 'INSERT INTO `users` (email, alias, phone, title, institution, city, country, region, level, workingGroup, createdBy, privileges) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)';
     const parameters = [
       normalizedEmail,
       alias,
       request.body.phone ? String(request.body.phone).trim() : '',
       request.body.title ? String(request.body.title).trim() : '',
       request.body.institution ? String(request.body.institution).trim() : '',
+      request.body.city ? String(request.body.city).trim() : '',
+      request.body.country ? String(request.body.country).trim() : '',
       regionValidation.value,
       request.body.level ? String(request.body.level).trim() : '',
       request.body.workingGroup ? String(request.body.workingGroup).trim() : '',
@@ -279,7 +281,7 @@ router.post('/contact', isAuthenticated, isContributor, async (request, response
 
 /**
  * Update an existing contact/user's editable fields (direct, no approval workflow).
- * Body: { rowKey: { email }, data: { alias, phone, title, institution, region, level, workingGroup } }
+ * Body: { rowKey: { email }, data: { alias, phone, title, institution, city, country, region, level, workingGroup } }
  * Requires approver-level privileges to prevent contributors from editing user records.
  */
 router.post('/contact/update', isAuthenticated, isApprover, async (request, response) => {
@@ -290,7 +292,7 @@ router.post('/contact/update', isAuthenticated, isApprover, async (request, resp
 
     if (!emailKey) return response.status(400).json({error: 'rowKey.email is required'});
 
-    const allowedUpdateFields = ['alias', 'phone', 'title', 'institution', 'region', 'level', 'workingGroup'];
+    const allowedUpdateFields = ['alias', 'phone', 'title', 'institution', 'city', 'country', 'region', 'level', 'workingGroup'];
     const updatesMap = {};
     allowedUpdateFields.forEach(fieldName => {
       if (Object.prototype.hasOwnProperty.call(data, fieldName)) {

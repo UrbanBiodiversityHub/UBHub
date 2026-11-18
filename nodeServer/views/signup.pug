@@ -134,6 +134,14 @@ body
           input.entryInput#title(name='title' type='text' maxlength='255' autocomplete='organization-title' value=formValues.title)
       div.entryLine
         div.entryLineItem
+          label.entryLabel(for='city') City
+          input.entryInput#city(name='city' type='text' maxlength='255' autocomplete='address-level2' value=formValues.city)
+      div.entryLine
+        div.entryLineItem
+          label.entryLabel(for='country') Country
+          input.entryInput#country(name='country' type='text' maxlength='255' autocomplete='country-name' value=formValues.country)
+      div.entryLine
+        div.entryLineItem
           label.entryLabel(for='region') Region(s)
           - const selectedRegions = [].concat(formValues.region || [])
           select.entryInput.regionSelect#region(name='region' multiple size=regionDefinitions.length)

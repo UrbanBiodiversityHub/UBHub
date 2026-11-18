@@ -69,6 +69,24 @@ describe('signup view', () => {
     expect(html).not.toMatch(/<input[^>]*value="partnershipCollaboration"[^>]*checked/)
   });
 
+  it('shows optional city and country fields and re-fills them after an error', () => {
+    const html = renderSignupView({ formValues: { city: 'Ljubljana', country: 'Slovenia' } });
+    const cityInput = html.match(/<input[^>]*name="city"[^>]*>/)[0];
+    const countryInput = html.match(/<input[^>]*name="country"[^>]*>/)[0];
+    expect(html).toContain('<label class="entryLabel" for="city">City</label>');
+    expect(html).toContain('<label class="entryLabel" for="country">Country</label>');
+    expect(cityInput).toContain('value="Ljubljana"');
+    expect(countryInput).toContain('value="Slovenia"');
+    expect(cityInput).toContain('autocomplete="address-level2"');
+    expect(countryInput).toContain('autocomplete="country-name"');
+    expect(cityInput).not.toContain('required');
+    expect(countryInput).not.toContain('required');
+  });
+
+  it('mentions city and country in the mailing-list privacy notice', () => {
+    expect(renderSignupView()).toContain('optionally your institution, title, city, country and region');
+  });
+
   it('shows the confirmation instead of the form once submitted', () => {
     const html = renderSignupView({ submitted: true });
     expect(html).toContain('Thank you for signing up');
