@@ -69,7 +69,7 @@ export class TableManager {
           styleClass = 'contributorRole';
           break;
         case 3:
-          displayText = 'Lead';
+          displayText = 'Approver';
           styleClass = 'leadRole';
           break;
         case 4:

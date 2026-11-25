@@ -12,13 +12,15 @@ import {isAuthenticated, isContributor, isApprover, isExec} from '../middleware/
 import {
   getTablesForUser,
   getNavigationMenuForUser,
-  getServerTableMetadata,
+  getServerTableMetadataForUser,
+  PRIVILEGE_LEVEL_DEFINITIONS,
   getEditableColumnsForUser,
   getUserEmailFilterFieldDefinitions,
 } from '../services/tableMetadata.js';
 import {buildTableDataQuery} from '../services/queryBuilder.js';
 import {buildUserEmailFilterQuery} from '../services/userFilterQueryBuilder.js';
 import {createPendingChange} from '../services/pendingChangeService.js';
+import {resolvePrivilegeUpdate} from '../services/userRoleService.js';
 import {
   createEmailSendRequest,
   approveEmailSendRequest,
@@ -56,6 +58,7 @@ router.get('/', function (request, response) {
   response.render('dataManagement', {
     dataManagementConfig: JSON.stringify(dataManagementConfig),
     user: request.session.user,
+    privilegeLevels: PRIVILEGE_LEVEL_DEFINITIONS,
   });
 });
 
@@ -79,7 +82,7 @@ router.get('/table-data/:tableName', isAuthenticated, isContributor, async (requ
 
     let serverMeta;
     try {
-      serverMeta = getServerTableMetadata(tableName);
+      serverMeta = getServerTableMetadataForUser(tableName, request);
     } catch {
       return response.status(500).json({error: 'Server table metadata not found'});
     }
@@ -281,8 +284,9 @@ router.post('/contact', isAuthenticated, isContributor, async (request, response
 
 /**
  * Update an existing contact/user's editable fields (direct, no approval workflow).
- * Body: { rowKey: { email }, data: { alias, phone, title, institution, city, country, region, level, workingGroup } }
+ * Body: { rowKey: { email }, data: { alias, phone, title, institution, city, country, region, level, workingGroup, privileges } }
  * Requires approver-level privileges to prevent contributors from editing user records.
+ * Changing `privileges` (the user's role) additionally requires an Executive; see userRoleService.
  */
 router.post('/contact/update', isAuthenticated, isApprover, async (request, response) => {
   try {
@@ -299,6 +303,21 @@ router.post('/contact/update', isAuthenticated, isApprover, async (request, resp
         updatesMap[fieldName] = String(data[fieldName] || '').trim();
       }
     });
+
+    if (Object.prototype.hasOwnProperty.call(data, 'privileges')) {
+      try {
+        updatesMap.privileges = resolvePrivilegeUpdate({
+          requestedPrivileges: data.privileges,
+          sessionPrivileges: request.session.privileges,
+          sessionEmail: request.session.email,
+          targetEmail: emailKey,
+        });
+      } catch (roleError) {
+        const statusByCode = {ROLE_CHANGE_FORBIDDEN: 403, CANNOT_CHANGE_OWN_ROLE: 403, INVALID_PRIVILEGE_LEVEL: 400};
+        if (!statusByCode[roleError.code]) throw roleError;
+        return response.status(statusByCode[roleError.code]).json({error: roleError.message});
+      }
+    }
 
     if (Object.keys(updatesMap).length === 0) {
       return response.status(400).json({error: 'No updatable fields provided'});

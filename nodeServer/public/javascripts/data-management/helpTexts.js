@@ -67,7 +67,7 @@ export const dataManagementHelpTexts = {
 
   users: {
     alias: 'The display name for the user. This is how the user will be shown throughout the application (e.g. "Jane Doe").',
-    privileges: 'The role or privilege level assigned to the user. Higher values grant more administrative capabilities; do not escalate privileges without approval.',
+    privileges: 'The user\'s role. Contact: on the mailing list, cannot log in. User: can log in, read-only. Contributor: can propose data changes. Approver: approves changes, manages contacts, requests bulk emails. Executive: also approves bulk email sends and manages roles. Only executives can change roles, and not their own. Contacts have no password, so raising a Contact\'s role does not let them log in.',
     status: 'Account status (for example "active", "inactive"). Use this to temporarily disable access if needed.',
     region: 'Geographic region associated with the user (optional). Use standard region names where possible.',
     assignedSite: 'A list or description of sites assigned to the user for administrative duties.',

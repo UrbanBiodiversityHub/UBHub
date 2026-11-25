@@ -101,7 +101,7 @@ describe('TableManager', () => {
       renderer({ privileges: 3 }, cell)
       const child = cell.querySelector('div')
       expect(child).toBeTruthy()
-      expect(child.textContent).toBe('Lead')
+      expect(child.textContent).toBe('Approver')
       expect(child.className).toBe('leadRole')
 
       const cellUser = createElement('div')

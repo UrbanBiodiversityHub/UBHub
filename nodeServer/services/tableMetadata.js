@@ -15,6 +15,19 @@
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
+// Roles stored in users.privileges. Single source of truth for the Role column,
+// the Manage Users role dropdown and the email-list Role filter.
+// ---------------------------------------------------------------------------
+
+export const PRIVILEGE_LEVEL_DEFINITIONS = Object.freeze([
+  Object.freeze({ value: 0, label: 'Contact' }),
+  Object.freeze({ value: 1, label: 'User' }),
+  Object.freeze({ value: 2, label: 'Contributor' }),
+  Object.freeze({ value: 3, label: 'Approver' }),
+  Object.freeze({ value: 4, label: 'Executive' }),
+]);
+
+// ---------------------------------------------------------------------------
 // Mailing-list signup interest checkboxes, stored as JSON in users.signupInterests
 // ({ [key]: true|false } for every key). Single source of truth for the signup
 // form (formLabel), server-side validation (key) and the users table (tableLabel).
@@ -154,7 +167,9 @@ const tableDisplayMetadata = {
     columns: [
       { name: 'alias', label: 'Name', visible: true, renderFunction: 'nameRenderer' },
       { name: 'email', label: 'Email', visible: true },
-      { name: 'privileges', label: 'Role', visible: true, renderFunction: 'privilegeRenderer' },
+      // options renders a dropdown in the edit form; editOnly hides it when creating a
+      // Contact (always privileges 0). Only executives get privileges as an editable column.
+      { name: 'privileges', label: 'Role', visible: true, renderFunction: 'privilegeRenderer', options: PRIVILEGE_LEVEL_DEFINITIONS, editOnly: true },
       { name: 'status', label: 'Status', visible: true, renderFunction: 'statusRenderer' },
       { name: 'region', label: 'Region', visible: true, placeholder: 'e.g. EU,NA  (codes: NA, LA, CAR, MECNA, AF, ESA, SA, EU, OC)' },
       { name: 'phone', label: 'Phone', visible: false },
@@ -301,6 +316,21 @@ export function getTableDisplayMetadata(tableName) {
  */
 export function getServerTableMetadata(tableName) {
   return getTableDisplayMetadata(tableName);
+}
+
+/**
+ * Server-side metadata for the columns a given user may read. Executives also
+ * read the executive-only users columns, so the table-data query must select them.
+ *
+ * @param {string} tableName
+ * @param {object} request - Express request with session info.
+ * @returns {object}
+ */
+export function getServerTableMetadataForUser(tableName, request) {
+  const serverMetadata = getServerTableMetadata(tableName);
+  const isExecutive = request.session && request.session.user && request.session.privileges >= 4;
+  if (tableName !== 'users' || !isExecutive) return serverMetadata;
+  return { ...serverMetadata, columns: [...serverMetadata.columns, ...executiveUserColumns] };
 }
 
 /**
@@ -481,9 +511,13 @@ export function getEditableColumnsForUser(request) {
   const result = {};
   Object.keys(editableTableMetadata).forEach(tableName => {
     if (visibleTables[tableName]) {
-      result[tableName] = editableTableMetadata[tableName].columns;
+      result[tableName] = editableTableMetadata[tableName].columns.slice();
     }
   });
+  // Only executives may change a user's role (see services/userRoleService.js).
+  if (result.users && request.session.privileges >= 4) {
+    result.users.push('privileges');
+  }
   return result;
 }
 

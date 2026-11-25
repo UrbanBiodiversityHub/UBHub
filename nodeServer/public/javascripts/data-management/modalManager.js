@@ -92,9 +92,10 @@ export class ApiClient {
 
 export class ModalRenderer {
   // Responsible for creating DOM nodes for modal forms/review views.
-  buildModalForTable(manager, tableName, fieldsContainer, titleElement) {
+  buildModalForTable(manager, tableName, fieldsContainer, titleElement, mode = 'add') {
     if (!titleElement || !fieldsContainer) return;
-    titleElement.textContent = `Add New Entry to ${manager.tables[tableName]?.displayName || tableName}`;
+    const tableDisplayName = manager.tables[tableName]?.displayName || tableName;
+    titleElement.textContent = mode === 'edit' ? `Edit Entry in ${tableDisplayName}` : `Add New Entry to ${tableDisplayName}`;
     fieldsContainer.innerHTML = '';
 
     if (!tableName || !manager.tables[tableName]) {
@@ -116,6 +117,8 @@ export class ModalRenderer {
     const formColumns = columns.filter(column => {
       if (!column || column.name === undefined) return false;
       if (column.name === 'id') return false;
+      // editOnly columns (e.g. users.privileges) make no sense when creating a row.
+      if (column.editOnly && mode !== 'edit') return false;
       // Filter to editable set when one is defined. A cross-reference column is
       // named after its display-only joined column (e.g. inst_title), so check
       // the lookup column it actually writes (e.g. inst_id) instead.
@@ -189,7 +192,7 @@ export class ModalRenderer {
         if (column.name === 'doc_url') {
           const urlInput = document.createElement('input');
           urlInput.type = 'text';
-          urlInput.id = `${column.name}`;
+          urlInput.id = inputId;
           urlInput.name = column.name;
           urlInput.setAttribute('data-col-name', column.name);
           urlInput.placeholder = `Enter ${labelText} or upload a PDF`;
@@ -391,10 +394,25 @@ export class ModalRenderer {
               uploadButton.disabled = false;
             }
           });
+        } else if (Array.isArray(column.options)) {
+          // Fixed set of values (e.g. users.privileges): show labels, submit values.
+          const selectElement = document.createElement('select');
+          selectElement.id = inputId;
+          selectElement.name = column.name;
+          selectElement.setAttribute('data-col-name', column.name);
+          selectElement.className = 'dataManagementInput';
+          column.options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = String(option.value);
+            optionElement.textContent = option.label;
+            selectElement.appendChild(optionElement);
+          });
+          rowDiv.appendChild(selectElement);
         } else {
           const inputElement = document.createElement('input');
           inputElement.type = 'text';
-          inputElement.id = `${column.name}`;
+          // Prefixed so it can't collide with the My Profile form's ids (alias, title, institution).
+          inputElement.id = inputId;
           inputElement.name = column.name;
           inputElement.setAttribute('data-col-name', column.name);
           inputElement.placeholder = column.placeholder || `Enter ${labelText}`;
@@ -597,12 +615,9 @@ export class ModalRenderer {
   populateEditValues(modalFormElement, rowData, manager, currentTable) {
     if (!modalFormElement || !rowData) return;
     modalFormElement.querySelectorAll('[data-col-name]').forEach(inputElement => {
-      const inputElementId = inputElement.getAttribute('id');
-      if (rowData.hasOwnProperty(inputElementId)) {
-        inputElement.value = rowData[inputElementId];
-      } else {
-        inputElement.value = '';
-      }
+      const columnName = inputElement.getAttribute('data-col-name');
+      const value = Object.prototype.hasOwnProperty.call(rowData, columnName) ? rowData[columnName] : null;
+      inputElement.value = (value === null || value === undefined) ? '' : String(value);
     });
 
     const columns = manager.tables[currentTable].columns || [];
@@ -934,7 +949,7 @@ export class ModalManager {
       if (this.reviewOverlayElement) this.reviewOverlayElement.classList.add('hidden');
       if (this.profileOverlayElement) this.profileOverlayElement.classList.add('hidden');
 
-      this.renderer.buildModalForTable(this.manager, tableName, this.modalFieldsElement, this.modalTitleElement);
+      this.renderer.buildModalForTable(this.manager, tableName, this.modalFieldsElement, this.modalTitleElement, 'edit');
       this.renderer.populateEditValues(this.modalFormElement || document, rowData, this.manager, tableName);
       this.modalOverlayElement && this.modalOverlayElement.classList.remove('hidden');
       const mainModal = this.modalOverlayElement && this.modalOverlayElement.querySelector('.modal');

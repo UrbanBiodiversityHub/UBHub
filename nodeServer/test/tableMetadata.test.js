@@ -8,6 +8,8 @@ import {
   transformTableForClient,
   getTablesForUser,
   getNavigationMenuForUser,
+  getEditableColumnsForUser,
+  getServerTableMetadataForUser,
 } from '../services/tableMetadata.js';
 
 describe('tableMetadata', () => {
@@ -248,5 +250,23 @@ describe('tableMetadata', () => {
       expect(labels).toContain('UBHubber Resources');
     });
   });
-});
 
+  describe('users role and executive columns', () => {
+    const requestWithPrivileges = (privileges) => ({ session: { user: 'staff', email: 'staff@example.org', privileges } });
+
+    it('makes privileges editable for executives only', () => {
+      expect(getEditableColumnsForUser(requestWithPrivileges(4)).users).toContain('privileges');
+      expect(getEditableColumnsForUser(requestWithPrivileges(3)).users).not.toContain('privileges');
+      // Must not leak into the shared metadata used by later requests.
+      expect(getEditableTableMetadata('users').columns).not.toContain('privileges');
+    });
+
+    it('selects executive-only users columns for executives', () => {
+      const executiveColumnNames = getServerTableMetadataForUser('users', requestWithPrivileges(4)).columns.map(column => column.name);
+      expect(executiveColumnNames).toEqual(expect.arrayContaining(['whatsAppNumber', 'primaryContact', 'userAddress', 'notes']));
+      const approverColumnNames = getServerTableMetadataForUser('users', requestWithPrivileges(3)).columns.map(column => column.name);
+      expect(approverColumnNames).not.toContain('whatsAppNumber');
+      expect(getServerTableMetadataForUser('locations', requestWithPrivileges(4))).toBe(getServerTableMetadata('locations'));
+    });
+  });
+});

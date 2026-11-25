@@ -163,11 +163,8 @@ html
       label(for='emailListPrivileges') Role (exact match)
       select#emailListPrivileges.dataManagementInput
         option(value='') Any role
-        option(value='0') 0: Contact
-        option(value='1') 1: Contributor
-        option(value='2') 2: Approver
-        option(value='3') 3: Admin
-        option(value='4') 4: Executive
+        each privilegeLevel in (privilegeLevels || [])
+          option(value=String(privilegeLevel.value)) #{privilegeLevel.label}
     .profileEditEntryFieldContainer
       label(for='emailListSubject') Email subject
       input#emailListSubject.dataManagementInput(type='text' placeholder='Subject line')
